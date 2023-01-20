@@ -12,8 +12,10 @@ import android.widget.Button;
 
 import com.bicontest.egg.MainActivity;
 import com.bicontest.egg.R;
+import com.bicontest.egg.saveWord;
 
 import java.util.ArrayList;
+import java.util.List;
 
 // 초기 페이지 - 관심 단어 선택
 public class FirstSelectActivity extends AppCompatActivity {
@@ -23,10 +25,11 @@ public class FirstSelectActivity extends AppCompatActivity {
     // 디바이스에 데이터를 저장하기 위한 작업
     public SharedPreferences mSharedPreferences;
     public SharedPreferences.Editor editor;
+    RoomDB database;
 
     // 영단어 리스트 표시에 필요한 것들
     private RecyclerView mRecyclerView;
-    private ArrayList<SelectViewItem> mList;
+    private List<SelectViewItem> mList;
     private SelectAdapter mRecyclerViewAdapter;
 
     private Button skipBtn, completeBtn;  // 건너뛰기, 선택완료 버튼
@@ -43,6 +46,8 @@ public class FirstSelectActivity extends AppCompatActivity {
         skipBtn = findViewById(R.id.select_word_skipbtn);          // 건너뛰기 버튼
         completeBtn = findViewById(R.id.select_word_completebtn);  // 선택완료 버튼
 
+        database = RoomDB.getInstance(this);
+//        mList = database.mainDao().getAll();
         firstInit();
 
         // 리스트에 단어의 영어, 한글 정보 전달
@@ -56,6 +61,7 @@ public class FirstSelectActivity extends AppCompatActivity {
         //mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), RecyclerView.HORIZONTAL, false)); // 수평 리스트
 
         getChecked();
+
 
         // 건너뛰기 버튼 클릭 시
         skipBtn.setOnClickListener(new View.OnClickListener() {
@@ -72,8 +78,14 @@ public class FirstSelectActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 for (int i = 0; i< mList.size();i++){
-                    editor.putBoolean("word" + Integer.toString(i), mList.get(i).getWordChecked());
-                    editor.commit();
+                    //여기서 roomDB 작성하기(영어 + 한글 단어를 리스트 형식으로 저장하게)
+                    SelectViewItem item = mList.get(i);
+                    if (item.getWordChecked()==true){
+                        saveWord data = new saveWord();
+                        data.setWordEnglish(item.getWordEnglish());
+                        data.setWordKorean(item.getWordKorean());
+                        database.mainDao().insert(data);
+                    }
                 }
                 Intent intent = new Intent(FirstSelectActivity.this, MainActivity.class); // 메인 페이지로 이동
                 startActivity(intent);
@@ -100,15 +112,8 @@ public class FirstSelectActivity extends AppCompatActivity {
     private void getChecked() {
         for (int i = 0; i< mList.size();i++){
             SelectViewItem item = mList.get(i);
-            item.setWordChecked(mSharedPreferences.getBoolean("word"+Integer.toString(i),false));
+            //그냥 확인용
         }
     }
 
-
-//    public static void moveChecked(Boolean isChecked, int pos){
-//        SelectViewItem item = mList.get(pos);
-//
-//        item.setWordChecked(isChecked);
-//
-//    }
 }
