@@ -39,11 +39,20 @@ public class SelectAdapter extends RecyclerView.Adapter<SelectAdapter.ViewHolder
                 public void onClick(View v) {
                     // 클릭된 아이템의 위치 찾아내기
                     int pos = getAdapterPosition();
+                    SelectViewItem item = mList.get(pos);
                     if (pos != RecyclerView.NO_POSITION) {
-                        //word_layout.setBackgroundColor(Color.rgb(255, 231, 169));
-
+                        if (item.getWordChecked()==false){
+                            word_layout.setBackgroundResource(R.drawable.border_background_select);
+                            item.setWordChecked(true);
+//                            FirstSelectActivity.moveChecked(true, pos);
+                        }
+                        else {
+                            word_layout.setBackgroundResource(R.drawable.border_background_unselect);
+                            item.setWordChecked(false);
+//                            FirstSelectActivity.moveChecked(false, pos);
+                        }
                         // 선택 된 단어 배경색 변경
-                        word_layout.setBackgroundResource(R.drawable.border_background_select);
+
                     }
                 }
             });
@@ -77,6 +86,12 @@ public class SelectAdapter extends RecyclerView.Adapter<SelectAdapter.ViewHolder
 
         holder.word_english.setText(item.getWordEnglish());  // 영어
         holder.word_korean.setText(item.getWordKorean());   // 한글
+        if (item.getWordChecked()==true){
+            holder.word_layout.setBackgroundResource(R.drawable.border_background_select);
+        }
+        else {
+            holder.word_layout.setBackgroundResource(R.drawable.border_background_unselect);
+        }
     }
 
     @Override

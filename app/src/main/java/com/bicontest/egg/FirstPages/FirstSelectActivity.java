@@ -55,6 +55,8 @@ public class FirstSelectActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(new GridLayoutManager(this,2)); // 수직 리스트 + 한 줄에 2개씩 grid
         //mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), RecyclerView.HORIZONTAL, false)); // 수평 리스트
 
+        getChecked();
+
         // 건너뛰기 버튼 클릭 시
         skipBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -69,6 +71,10 @@ public class FirstSelectActivity extends AppCompatActivity {
         completeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                for (int i = 0; i< mList.size();i++){
+                    editor.putBoolean("word" + Integer.toString(i), mList.get(i).getWordChecked());
+                    editor.commit();
+                }
                 Intent intent = new Intent(FirstSelectActivity.this, MainActivity.class); // 메인 페이지로 이동
                 startActivity(intent);
                 finish(); // 현재 액티비티 파괴
@@ -91,4 +97,18 @@ public class FirstSelectActivity extends AppCompatActivity {
 
         mList.add(item);
     }
+    private void getChecked() {
+        for (int i = 0; i< mList.size();i++){
+            SelectViewItem item = mList.get(i);
+            item.setWordChecked(mSharedPreferences.getBoolean("word"+Integer.toString(i),false));
+        }
+    }
+
+
+//    public static void moveChecked(Boolean isChecked, int pos){
+//        SelectViewItem item = mList.get(pos);
+//
+//        item.setWordChecked(isChecked);
+//
+//    }
 }

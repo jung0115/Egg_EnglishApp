@@ -4,6 +4,7 @@ package com.bicontest.egg.FirstPages;
 public class SelectViewItem {
     private String mWordEnglish;
     private String mWordKorean;
+    private Boolean mWordChecked = false;
 
     public String getWordEnglish() {
         return mWordEnglish;
@@ -20,4 +21,8 @@ public class SelectViewItem {
     public void setWordKorean(String wordKorean) {
         this.mWordKorean = wordKorean;
     }
+
+    public  Boolean getWordChecked() { return mWordChecked; }
+
+    public void setWordChecked(Boolean wordChecked) { this.mWordChecked = wordChecked; }
 }
