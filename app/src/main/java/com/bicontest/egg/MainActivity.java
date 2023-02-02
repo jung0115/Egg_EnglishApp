@@ -3,7 +3,6 @@ package com.bicontest.egg;
 import android.content.Intent;
 import android.os.Bundle;
 
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 
@@ -15,6 +14,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.bicontest.egg.MainPages.MainFragment;
+import com.bicontest.egg.Search.SearchResultFragment;
 
 public class MainActivity extends AppCompatActivity {
 

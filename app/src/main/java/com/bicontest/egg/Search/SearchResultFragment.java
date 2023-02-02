@@ -1,4 +1,4 @@
-package com.bicontest.egg;
+package com.bicontest.egg.Search;
 
 import android.os.Bundle;
 
@@ -25,6 +25,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class SearchResultFragment extends Fragment {
     private String[][] searchWords = {{"apple", "사과"}, {"computer", "컴퓨터"}, {"science", "과학"}, {"student", "학생"}, {"August", "8월"}};
@@ -32,6 +33,8 @@ public class SearchResultFragment extends Fragment {
 
     // 검색어 = 검색할 단어
     private String mSearchWord;
+    private ArrayList<ResultWords> resultWords = new ArrayList<ResultWords>();
+    private ArrayList<Integer> rocations = new ArrayList<Integer>();
 
     // 파이어베이스 DB 접근
     private DatabaseReference myRef;
@@ -59,7 +62,7 @@ public class SearchResultFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         // 검색어 데이터 받아오기
-        mSearchWord = this.getArguments().getString("SearchWord");
+        mSearchWord = this.getArguments().getString("SearchWord").toLowerCase();
         //Log.d("Test", mSearchWord + "-----------------------------");
 
         getWordsThread.start();
@@ -74,11 +77,6 @@ public class SearchResultFragment extends Fragment {
         // recylerview 세팅
         firstInit();
 
-        // 추천 단어 리스트에 단어의 영어, 한글 정보 전달 + 연관어 정보
-        /*for(int i = 0; i < 5; i++){
-            addSearchItem(searchWords[i][0], searchWords[i][1], toggleWords[i]);
-        }*/
-
         mSearchRecyclerViewAdapter = new RecommendAdapter(mSearchList);
         mSearchRecyclerView.setAdapter(mSearchRecyclerViewAdapter);
         mSearchRecyclerView.setLayoutManager(new LinearLayoutManager(requireActivity())); // 수직 리스트
@@ -92,13 +90,7 @@ public class SearchResultFragment extends Fragment {
     }
 
     // 검색 결과 리스트에 단어의 영어, 한글 정보 추가
-    private void addSearchItem(String wordEnglish, String wordKorean, String[][] toggleWord){
-        RecommendViewItem searchItem = new RecommendViewItem();
-
-        searchItem.setWordEnglish(wordEnglish);
-        searchItem.setWordKorean(wordKorean);
-        searchItem.setToggleItem(buildToggleWords(toggleWord));
-
+    private void addSearchItem(RecommendViewItem searchItem){
         mSearchList.add(searchItem);
 
         mSearchRecyclerViewAdapter.notifyDataSetChanged();
@@ -131,15 +123,31 @@ public class SearchResultFragment extends Fragment {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                String word = snapshot.child("eng").getValue().toString().toLowerCase();
+                                int rocation = word.indexOf(mSearchWord);
+
                                 // 해당 단어가 검색어를 포함하고 있는 경우
-                                if(snapshot.child("eng").getValue().toString().contains(mSearchWord)) {
-                                    addSearchItem(
-                                            snapshot.child("eng").getValue().toString(), // 영어
-                                            snapshot.child("kor").getValue().toString(), // 한글
-                                            toggleWords[0]); // 연관어
+                                if(rocation > -1) {
+                                    RecommendViewItem searchItem = new RecommendViewItem();
+                                    searchItem.setWordEnglish(snapshot.child("eng").getValue().toString()); // 영어
+                                    searchItem.setWordKorean(snapshot.child("kor").getValue().toString());  // 한글
+                                    searchItem.setToggleItem(buildToggleWords(toggleWords[0]));             // 연관어
+
+                                    resultWords.add(new ResultWords(searchItem, rocation));
 
                                     Log.d("SearchText", "검색 결과 : " + snapshot.getValue());
                                 }
+                            }
+                            //Log.d("Test3", "-----------------------------------");
+
+                            // 검색어의 위치를 기준으로 정렬
+                            Collections.sort(resultWords);
+
+                            // 정확도 순 상위 20개
+                            for(int i = 0; i < resultWords.size(); i++) {
+                                addSearchItem(resultWords.get(i).mSearchResult);
+                                //Log.d("Test", resultWords.get(i).mSearchResult.toString());
+                                //Log.d("Test", "-------------------------------");
                             }
                         }
 
@@ -151,4 +159,25 @@ public class SearchResultFragment extends Fragment {
             );
         }
     });
+
+    // 검색어 위치 기준으로 단어 정렬
+    class ResultWords implements Comparable<ResultWords> {
+        private RecommendViewItem mSearchResult;
+        private int rocation;
+
+        public ResultWords(RecommendViewItem mSearchResult, int rocation) {
+            this.mSearchResult = mSearchResult;
+            this.rocation = rocation;
+        }
+
+        @Override
+        public int compareTo(ResultWords resultWords) {
+            if (resultWords.rocation < rocation) {
+                return 1;
+            } else if (resultWords.rocation > rocation) {
+                return -1;
+            }
+            return 0;
+        }
+    }
 }
